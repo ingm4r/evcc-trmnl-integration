@@ -1,0 +1,587 @@
+[
+    {
+        "id": "evcc_trmnl_native_tab",
+        "type": "tab",
+        "label": "EVCC to TRMNL Native",
+        "disabled": false,
+        "info": "Native Node-RED flow for EVCC to TRMNL integration without external scripts"
+    },
+    {
+        "id": "config_node",
+        "type": "inject",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Configuration",
+        "props": [
+            {
+                "p": "evcc_url",
+                "v": "http://your-evcc-host",
+                "vt": "str"
+            },
+            {
+                "p": "trmnl_url",
+                "v": "http://your-trmnl-host:2300",
+                "vt": "str"
+            },
+            {
+                "p": "trmnl_mac",
+                "v": "AA:BB:CC:DD:EE:FF",
+                "vt": "str"
+            },
+            {
+                "p": "trmnl_api_key",
+                "v": "your-trmnl-api-key-here",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "config",
+        "x": 100,
+        "y": 60,
+        "wires": [
+            [
+                "set_config"
+            ]
+        ]
+    },
+    {
+        "id": "set_config",
+        "type": "change",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Set Global Config",
+        "rules": [
+            {
+                "t": "set",
+                "p": "evcc_url",
+                "pt": "global",
+                "to": "evcc_url",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "trmnl_url",
+                "pt": "global",
+                "to": "trmnl_url",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "trmnl_mac",
+                "pt": "global",
+                "to": "trmnl_mac",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "trmnl_api_key",
+                "pt": "global",
+                "to": "trmnl_api_key",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 290,
+        "y": 60,
+        "wires": [
+            [
+                "config_debug"
+            ]
+        ]
+    },
+    {
+        "id": "config_debug",
+        "type": "debug",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Config Set",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 480,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "timer_inject",
+        "type": "inject",
+        "z": "evcc_trmnl_native_tab",
+        "name": "5 Minute Timer",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "300",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "10",
+        "topic": "evcc_update",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 140,
+        "wires": [
+            [
+                "set_evcc_url"
+            ]
+        ]
+    },
+    {
+        "id": "manual_trigger",
+        "type": "inject",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Manual Trigger",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "0.1",
+        "topic": "manual_update",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 100,
+        "wires": [
+            [
+                "set_evcc_url"
+            ]
+        ]
+    },
+    {
+        "id": "test_trigger",
+        "type": "inject",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Test Data",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "0.1",
+        "topic": "test_data",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 180,
+        "wires": [
+            [
+                "create_test_data"
+            ]
+        ]
+    },
+    {
+        "id": "fetch_evcc_data",
+        "type": "http request",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Fetch EVCC API",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 350,
+        "y": 140,
+        "wires": [
+            [
+                "parse_evcc_data"
+            ],
+            [
+                "http_error"
+            ]
+        ]
+    },
+    {
+        "id": "set_evcc_url",
+        "type": "function",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Set EVCC URL",
+        "func": "const evccUrl = global.get('evcc_url');\nif (!evccUrl || evccUrl === 'http://your-evcc-host') {\n    node.error('EVCC URL not configured. Click Configuration inject node first.');\n    return null;\n}\nmsg.url = evccUrl + '/api/state';\nnode.log('Fetching from: ' + msg.url);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 120,
+        "wires": [
+            [
+                "fetch_evcc_data"
+            ]
+        ]
+    },
+    {
+        "id": "parse_evcc_data",
+        "type": "function",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Parse EVCC Data",
+        "func": "try {\n    const data = msg.payload;\n    const result = data.result || {};\n    \n    node.log('Raw EVCC data: ' + JSON.stringify(data, null, 2));\n    \n    // Extract system data\n    const systemData = {\n        grid_power: (result.grid && result.grid.power) || 0,\n        home_power: result.homePower || 0,\n        solar_power: (result.pv && result.pv[0] && result.pv[0].power) || 0,\n        battery_power: (result.battery && result.battery[0] && result.battery[0].power) || 0,\n        battery_soc: (result.battery && result.battery[0] && result.battery[0].soc) || null\n    };\n    \n    node.log('System data: ' + JSON.stringify(systemData));\n    \n    // Extract vehicles for lookup\n    const vehicles = result.vehicles || {};\n    node.log('Vehicles: ' + JSON.stringify(vehicles));\n    \n    // Extract charging points\n    const chargingPoints = [];\n    const loadpoints = result.loadpoints || [];\n    \n    node.log('Loadpoints: ' + JSON.stringify(loadpoints));\n    \n    for (let i = 0; i < loadpoints.length; i++) {\n        const loadpoint = loadpoints[i];\n        let title = loadpoint.title || `Loadpoint ${i + 1}`;\n        \n        // Default names for known setup\n        if (i === 0 && title === `Loadpoint ${i + 1}`) {\n            title = \"Garage\";\n        } else if (i === 1 && title === `Loadpoint ${i + 1}`) {\n            title = \"Stellplatz\";\n        }\n        \n        // Determine status\n        let status = 'idle';\n        if (loadpoint.connected) {\n            status = loadpoint.charging ? 'charging' : 'connected';\n        }\n        \n        // Extract vehicle info\n        let vehicle = 'None';\n        const vehicleName = loadpoint.vehicleName;\n        if (vehicleName && vehicles[vehicleName]) {\n            vehicle = vehicles[vehicleName].title || vehicleName;\n        } else if (loadpoint.vehicleTitle) {\n            vehicle = loadpoint.vehicleTitle;\n        } else if (loadpoint.connected) {\n            vehicle = 'Connected';\n        }\n        \n        // Format SOC and range like Python script\n        let soc = loadpoint.vehicleSoc;\n        let range = loadpoint.vehicleRange;\n        \n        // Convert SOC to percentage if it's a decimal (like 0.46288 -> 46.288%)\n        if (soc !== null && soc !== undefined) {\n            if (soc < 1) {\n                soc = (soc * 100).toFixed(3);\n            } else {\n                soc = Math.round(soc);\n            }\n        }\n        \n        // Round range to whole number\n        if (range !== null && range !== undefined) {\n            range = Math.round(range);\n        }\n        \n        const point = {\n            name: title,\n            status: status,\n            status_text: status.toUpperCase(),\n            power: Math.round(loadpoint.chargePower || 0),\n            vehicle: vehicle,\n            soc: soc,\n            range: range\n        };\n        \n        chargingPoints.push(point);\n        node.log('Charging point ' + i + ': ' + JSON.stringify(point));\n    }\n    \n    // If no charging points, create defaults\n    if (chargingPoints.length === 0) {\n        chargingPoints.push(\n            {\n                name: 'Garage',\n                status: 'error',\n                status_text: 'ERROR',\n                power: 0,\n                vehicle: 'No Data',\n                soc: null,\n                range: null\n            },\n            {\n                name: 'Stellplatz',\n                status: 'error',\n                status_text: 'ERROR',\n                power: 0,\n                vehicle: 'No Data',\n                soc: null,\n                range: null\n            }\n        );\n    }\n    \n    // Prepare template data\n    const evccUrl = global.get('evcc_url') || 'your-evcc-host';\n    const siteTitle = evccUrl.replace(/^https?:\\/\\//, '').split('/')[0];\n    \n    const templateData = {\n        site_title: siteTitle,\n        system_offline: chargingPoints.every(p => p.status === 'error'),\n        charging_points: chargingPoints,\n        grid_power: Math.round(systemData.grid_power),\n        grid_class: systemData.grid_power < 0 ? 'negative' : 'positive',\n        solar_power: Math.round(systemData.solar_power),\n        home_power: Math.round(systemData.home_power),\n        battery_power: systemData.battery_power !== 0 ? Math.round(systemData.battery_power) : null,\n        battery_class: systemData.battery_power < 0 ? 'negative' : 'positive',\n        battery_soc: systemData.battery_soc,\n        last_update: new Date().toLocaleString('de-DE', {\n            hour: '2-digit',\n            minute: '2-digit',\n            day: '2-digit',\n            month: '2-digit',\n            year: 'numeric'\n        })\n    };\n    \n    node.log('Template data: ' + JSON.stringify(templateData, null, 2));\n    \n    // Set the payload to the template data for the mustache template\n    msg.payload = templateData;\n    msg.templateData = templateData; // Keep for debugging\n    \n    return msg;\n    \n} catch (error) {\n    node.error('Error parsing EVCC data: ' + error.message);\n    node.error('Stack: ' + error.stack);\n    msg.error = error.message;\n    return msg;\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 140,
+        "wires": [
+            [
+                "generate_html"
+            ]
+        ]
+    },
+    {
+        "id": "create_test_data",
+        "type": "function",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Create Test Data",
+        "func": "const testData = {\n    site_title: 'Test EVCC Host',\n    system_offline: false,\n    charging_points: [\n        {\n            name: 'Garage',\n            status: 'charging',\n            status_text: 'CHARGING',\n            power: 7200,\n            vehicle: 'Test Vehicle (Node-RED)',\n            soc: 65,\n            range: 280\n        },\n        {\n            name: 'Stellplatz',\n            status: 'idle',\n            status_text: 'IDLE',\n            power: 0,\n            vehicle: 'None',\n            soc: null,\n            range: null\n        }\n    ],\n    grid_power: 2500,\n    grid_class: 'positive',\n    solar_power: 4800,\n    home_power: 1800,\n    battery_power: -1200,\n    battery_class: 'negative',\n    battery_soc: 85,\n    last_update: new Date().toLocaleString('de-DE', {\n        hour: '2-digit',\n        minute: '2-digit',\n        day: '2-digit',\n        month: '2-digit',\n        year: 'numeric'\n    })\n};\n\n// Set the payload to the template data for the mustache template\nmsg.payload = testData;\nmsg.templateData = testData; // Keep for debugging\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 180,
+        "wires": [
+            [
+                "generate_html"
+            ]
+        ]
+    },
+    {
+        "id": "generate_html",
+        "type": "function",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Generate HTML",
+        "func": "try {\n    const data = msg.payload;\n    \n    // Generate charging points HTML\n    let chargingPointsHtml = '';\n    for (const point of data.charging_points) {\n        let socHtml = '';\n        if (point.soc !== null && point.soc !== undefined) {\n            socHtml = `<div class=\"battery-info\">${point.soc}%</div>`;\n        }\n        \n        let rangeHtml = '';\n        if (point.range !== null && point.range !== undefined) {\n            rangeHtml = `<div class=\"battery-info\">${point.range}km</div>`;\n        }\n        \n        chargingPointsHtml += `\n            <div class=\"charging-point ${point.status}\">\n                <div class=\"point-name\">${point.name}</div>\n                <div class=\"point-status ${point.status}\">\n                    ${point.status_text}\n                </div>\n                \n                <div class=\"point-power\">${point.power}W</div>\n                \n                <div class=\"point-details\">\n                    <div class=\"vehicle-name\">${point.vehicle}</div>\n                    ${socHtml}\n                    ${rangeHtml}\n                </div>\n            </div>`;\n    }\n    \n    // Generate system offline banner if needed\n    let offlineBanner = '';\n    if (data.system_offline) {\n        offlineBanner = `\n        <div class=\"offline-banner\">\n            SYSTEM OFFLINE\n        </div>`;\n    }\n    \n    // Generate battery section if needed\n    let batteryHtml = '';\n    if (data.battery_power !== null && data.battery_power !== undefined) {\n        let batterySocHtml = '';\n        if (data.battery_soc !== null && data.battery_soc !== undefined) {\n            batterySocHtml = `\n                <div class=\"charging-point\">\n                    <div class=\"point-name\">Battery SOC</div>\n                    <div class=\"point-power\">${data.battery_soc}%</div>\n                </div>`;\n        }\n        \n        batteryHtml = `\n            <div class=\"power-grid\" style=\"margin-top: 8px; grid-template-columns: 1fr 1fr;\">\n                <div class=\"charging-point\">\n                    <div class=\"point-name\">Battery</div>\n                    <div class=\"point-power ${data.battery_class}\">${data.battery_power}W</div>\n                </div>\n                ${batterySocHtml}\n            </div>`;\n    }\n    \n    // Generate complete HTML\n    const html = `<!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>EVCC Charging Status</title>\n    <style>\n        body {\n            font-family: 'Helvetica Neue', Arial, sans-serif;\n            margin: 0;\n            padding: 5px;\n            background-color: white;\n            color: black;\n            line-height: 1.3;\n            font-size: 16px;\n        }\n        \n        .container {\n            max-width: 100%;\n            margin: 0;\n            padding: 10px;\n        }\n        \n        .header {\n            text-align: center;\n            margin-bottom: 15px;\n            border-bottom: 3px solid black;\n            padding-bottom: 8px;\n        }\n        \n        .title {\n            font-size: 24px;\n            font-weight: bold;\n            margin: 0;\n        }\n        \n        .subtitle {\n            font-size: 14px;\n            margin: 4px 0 0 0;\n            color: #666;\n        }\n        \n        .status-grid {\n            display: grid;\n            grid-template-columns: 1fr 1fr;\n            gap: 15px;\n            margin-bottom: 15px;\n        }\n        \n        .charging-point {\n            padding: 12px;\n            border: 3px solid black;\n            border-radius: 6px;\n            background-color: white;\n        }\n        \n        .charging-point.charging {\n            background-color: #f5f5f5;\n            border-width: 4px;\n        }\n        \n        .charging-point.error {\n            border-style: dashed;\n            background-color: #fafafa;\n        }\n        \n        .point-name {\n            font-size: 18px;\n            font-weight: bold;\n            margin-bottom: 6px;\n            text-align: center;\n        }\n        \n        .point-status {\n            font-size: 14px;\n            margin-bottom: 6px;\n            text-transform: uppercase;\n            font-weight: bold;\n            text-align: center;\n        }\n        \n        .point-status.charging { color: black; }\n        .point-status.connected { color: #555; }\n        .point-status.idle { color: #888; }\n        .point-status.error { color: black; }\n        \n        .point-power {\n            font-size: 16px;\n            font-weight: bold;\n            text-align: center;\n            margin-bottom: 6px;\n        }\n        \n        .point-details {\n            font-size: 12px;\n            text-align: center;\n            line-height: 1.1;\n        }\n        \n        .vehicle-name {\n            font-style: italic;\n            margin-bottom: 3px;\n        }\n        \n        .battery-info {\n            margin-bottom: 2px;\n        }\n        \n        .system-overview {\n            border: 3px solid black;\n            border-radius: 6px;\n            padding: 12px;\n            margin-bottom: 10px;\n        }\n        \n        .system-title {\n            font-size: 16px;\n            font-weight: bold;\n            text-align: center;\n            margin-bottom: 8px;\n            border-bottom: 2px solid black;\n            padding-bottom: 6px;\n        }\n        \n        .power-grid {\n            display: grid;\n            grid-template-columns: 1fr 1fr 1fr;\n            gap: 10px;\n            text-align: center;\n        }\n        \n        .power-metric {\n            font-size: 12px;\n        }\n        \n        .power-value {\n            font-size: 14px;\n            font-weight: bold;\n            margin-bottom: 3px;\n        }\n        \n        .power-value.negative {\n            color: #333;\n        }\n        \n        .power-value.positive {\n            color: #666;\n        }\n        \n        .power-label {\n            color: #777;\n            font-size: 11px;\n        }\n        \n        .footer {\n            text-align: center;\n            font-size: 12px;\n            color: #999;\n            margin-top: 8px;\n            padding-top: 6px;\n            border-top: 1px solid #ddd;\n        }\n        \n        .offline-banner {\n            background-color: #f0f0f0;\n            border: 3px dashed black;\n            padding: 12px;\n            text-align: center;\n            font-weight: bold;\n            font-size: 16px;\n            margin-bottom: 15px;\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <div class=\"header\">\n            <h1 class=\"title\">EV Charging</h1>\n            <p class=\"subtitle\">${data.site_title}</p>\n        </div>\n        ${offlineBanner}\n        \n        <div class=\"status-grid\">${chargingPointsHtml}\n        </div>\n        \n        <div class=\"system-overview\">\n            <div class=\"system-title\">System Overview</div>\n            <div class=\"power-grid\">\n                <div class=\"charging-point\">\n                    <div class=\"point-name\">Grid</div>\n                    <div class=\"point-power ${data.grid_class}\">${data.grid_power}W</div>\n                </div>\n                \n                <div class=\"charging-point\">\n                    <div class=\"point-name\">Solar</div>\n                    <div class=\"point-power\">${data.solar_power}W</div>\n                </div>\n                \n                <div class=\"charging-point\">\n                    <div class=\"point-name\">Home</div>\n                    <div class=\"point-power\">${data.home_power}W</div>\n                </div>\n            </div>\n            ${batteryHtml}\n        </div>\n        \n        <div class=\"footer\">\n            Last updated: ${data.last_update}\n        </div>\n    </div>\n</body>\n</html>`;\n    \n    msg.html = html;\n    node.log('Generated HTML length: ' + html.length);\n    \n    return msg;\n    \n} catch (error) {\n    node.error('Error generating HTML: ' + error.message);\n    node.error('Stack: ' + error.stack);\n    msg.error = error.message;\n    return msg;\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 160,
+        "wires": [
+            [
+                "debug_html",
+                "create_trmnl_payload"
+            ]
+        ]
+    },
+    {
+        "id": "debug_html",
+        "type": "debug",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Final HTML Output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "html",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1000,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "create_trmnl_payload",
+        "type": "function",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Create TRMNL Payload",
+        "func": "// Check TRMNL configuration\nconst trmnlUrl = global.get('trmnl_url');\nconst trmnlApiKey = global.get('trmnl_api_key');\n\nif (!trmnlUrl || trmnlUrl === 'http://your-trmnl-host:2300') {\n    node.error('TRMNL URL not configured. Click Configuration inject node first.');\n    return null;\n}\n\nif (!trmnlApiKey || trmnlApiKey === 'your-trmnl-api-key-here') {\n    node.error('TRMNL API key not configured. Click Configuration inject node first.');\n    return null;\n}\n\n// Create the TRMNL API payload\nconst trmnlPayload = {\n    image: {\n        content: msg.html,\n        file_name: 'evcc-status.png'\n    }\n};\n\nmsg.payload = trmnlPayload;\n\n// Set up headers for TRMNL API\nmsg.headers = {\n    'Content-Type': 'application/json',\n    'Access-Token': trmnlApiKey,\n    'User-Agent': 'EVCC-TRMNL-NodeRED/1.0'\n};\n\n// Set URL for TRMNL API\nmsg.url = trmnlUrl + '/api/screens';\n\nnode.log('Sending to TRMNL: ' + msg.url);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1000,
+        "y": 160,
+        "wires": [
+            [
+                "rate_limit_check"
+            ]
+        ]
+    },
+    {
+        "id": "rate_limit_check",
+        "type": "function",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Rate Limit Check",
+        "func": "// Rate limiting - 5 minutes between updates\nconst now = Date.now();\nconst lastSent = global.get('last_trmnl_sent') || 0;\nconst minInterval = 5 * 60 * 1000; // 5 minutes in milliseconds\n\nif (now - lastSent < minInterval && msg.topic !== 'test_data') {\n    node.warn('Rate limit active, skipping update');\n    return null;\n}\n\n// Set the last sent time\nglobal.set('last_trmnl_sent', now);\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1220,
+        "y": 160,
+        "wires": [
+            [
+                "send_to_trmnl"
+            ]
+        ]
+    },
+    {
+        "id": "send_to_trmnl",
+        "type": "http request",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Send to TRMNL",
+        "method": "POST",
+        "ret": "txt",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 1420,
+        "y": 160,
+        "wires": [
+            [
+                "trmnl_success"
+            ],
+            [
+                "trmnl_error"
+            ]
+        ]
+    },
+    {
+        "id": "trmnl_success",
+        "type": "debug",
+        "z": "evcc_trmnl_native_tab",
+        "name": "TRMNL Success",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1630,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "trmnl_error",
+        "type": "debug",
+        "z": "evcc_trmnl_native_tab",
+        "name": "TRMNL Error",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1630,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "http_error",
+        "type": "debug",
+        "z": "evcc_trmnl_native_tab",
+        "name": "HTTP Error",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 570,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "startup_delay",
+        "type": "inject",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Startup Test",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "30",
+        "topic": "startup_test",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 260,
+        "wires": [
+            [
+                "create_test_data"
+            ]
+        ]
+    },
+    {
+        "id": "statistics_timer",
+        "type": "inject",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Hourly Stats",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "3600",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "0.1",
+        "topic": "hourly_stats",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 300,
+        "wires": [
+            [
+                "show_stats"
+            ]
+        ]
+    },
+    {
+        "id": "show_stats",
+        "type": "function",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Show Statistics",
+        "func": "const stats = {\n    timestamp: new Date().toISOString(),\n    last_trmnl_sent: global.get('last_trmnl_sent') || 0,\n    evcc_url: global.get('evcc_url'),\n    trmnl_url: global.get('trmnl_url'),\n    config_set: !!(global.get('evcc_url') && global.get('trmnl_url'))\n};\n\nmsg.payload = stats;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 300,
+        "wires": [
+            [
+                "stats_debug"
+            ]
+        ]
+    },
+    {
+        "id": "stats_debug",
+        "type": "debug",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Statistics",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 540,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "emergency_reset",
+        "type": "inject",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Emergency Reset",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "0.1",
+        "topic": "emergency_reset",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 360,
+        "wires": [
+            [
+                "reset_rate_limit"
+            ]
+        ]
+    },
+    {
+        "id": "reset_rate_limit",
+        "type": "function",
+        "z": "evcc_trmnl_native_tab",
+        "name": "Reset Rate Limit",
+        "func": "// Reset rate limiting and send test data\nglobal.set('last_trmnl_sent', 0);\n\nnode.warn('Rate limit reset, sending emergency test data');\n\n// Create emergency test data\nconst testData = {\n    site_title: 'Emergency Reset',\n    system_offline: false,\n    charging_points: [\n        {\n            name: 'Emergency',\n            status: 'error',\n            status_text: 'RESET',\n            power: 0,\n            vehicle: 'System Reset',\n            soc: null,\n            range: null\n        }\n    ],\n    grid_power: 0,\n    grid_class: 'positive',\n    solar_power: 0,\n    home_power: 0,\n    battery_power: null,\n    battery_class: 'positive',\n    battery_soc: null,\n    last_update: new Date().toLocaleString('de-DE', {\n        hour: '2-digit',\n        minute: '2-digit',\n        day: '2-digit',\n        month: '2-digit',\n        year: 'numeric'\n    })\n};\n\n// Set the payload to the template data for the mustache template\nmsg.payload = testData;\nmsg.templateData = testData; // Keep for debugging\nmsg.topic = 'emergency_reset';\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 360,
+        "y": 360,
+        "wires": [
+            [
+                "generate_html"
+            ]
+        ]
+    }
+]

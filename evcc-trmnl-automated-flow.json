@@ -1,0 +1,420 @@
+[
+    {
+        "id": "evcc_trmnl_tab",
+        "type": "tab",
+        "label": "EVCC to TRMNL Automation",
+        "disabled": false,
+        "info": "Automated flow for sending EVCC data to TRMNL device every 5 minutes"
+    },
+    {
+        "id": "timer_inject",
+        "type": "inject",
+        "z": "evcc_trmnl_tab",
+        "name": "5 Minute Timer",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "300",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "10",
+        "topic": "evcc_update",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 100,
+        "wires": [
+            [
+                "python_exec"
+            ]
+        ]
+    },
+    {
+        "id": "manual_trigger",
+        "type": "inject",
+        "z": "evcc_trmnl_tab",
+        "name": "Manual Trigger",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "0.1",
+        "topic": "manual_update",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 60,
+        "wires": [
+            [
+                "python_exec"
+            ]
+        ]
+    },
+    {
+        "id": "python_exec",
+        "type": "exec",
+        "z": "evcc_trmnl_tab",
+        "command": "cd /path/to/evcc-trmnl-linker && python3 evcc-api-client.py --evcc-url http://your-evcc-host --trmnl-url http://your-trmnl-host:2300 --trmnl-mac AA:BB:CC:DD:EE:FF --trmnl-api-key your-trmnl-api-key-here --poll-once",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "false",
+        "timer": "60",
+        "oldrc": false,
+        "name": "Execute EVCC Client",
+        "x": 370,
+        "y": 80,
+        "wires": [
+            [
+                "success_log"
+            ],
+            [
+                "error_log"
+            ],
+            [
+                "status_output"
+            ]
+        ]
+    },
+    {
+        "id": "success_log",
+        "type": "debug",
+        "z": "evcc_trmnl_tab",
+        "name": "Success Output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 620,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "error_log",
+        "type": "debug",
+        "z": "evcc_trmnl_tab",
+        "name": "Error Output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 620,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "status_output",
+        "type": "debug",
+        "z": "evcc_trmnl_tab",
+        "name": "Status Output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 620,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "startup_delay",
+        "type": "inject",
+        "z": "evcc_trmnl_tab",
+        "name": "Startup Test",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "30",
+        "topic": "startup_test",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 160,
+        "wires": [
+            [
+                "test_script"
+            ]
+        ]
+    },
+    {
+        "id": "test_script",
+        "type": "exec",
+        "z": "evcc_trmnl_tab",
+        "command": "cd /path/to/evcc-trmnl-linker && python3 evcc-api-client.py --evcc-url http://your-evcc-host --trmnl-url http://your-trmnl-host:2300 --trmnl-mac AA:BB:CC:DD:EE:FF --trmnl-api-key your-trmnl-api-key-here --test-only",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "false",
+        "timer": "30",
+        "oldrc": false,
+        "name": "Test TRMNL Connection",
+        "x": 390,
+        "y": 160,
+        "wires": [
+            [
+                "test_success"
+            ],
+            [
+                "test_error"
+            ],
+            [
+                "test_status"
+            ]
+        ]
+    },
+    {
+        "id": "test_success",
+        "type": "debug",
+        "z": "evcc_trmnl_tab",
+        "name": "Test Success",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 620,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "test_error",
+        "type": "debug",
+        "z": "evcc_trmnl_tab",
+        "name": "Test Error",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 620,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "test_status",
+        "type": "debug",
+        "z": "evcc_trmnl_tab",
+        "name": "Test Status",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 620,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "statistics_timer",
+        "type": "inject",
+        "z": "evcc_trmnl_tab",
+        "name": "Hourly Stats",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "3600",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "0.1",
+        "topic": "hourly_stats",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 280,
+        "wires": [
+            [
+                "stats_exec"
+            ]
+        ]
+    },
+    {
+        "id": "stats_exec",
+        "type": "exec",
+        "z": "evcc_trmnl_tab",
+        "command": "cd /path/to/evcc-trmnl-linker && echo 'stats' | python3 evcc-api-client.py --evcc-url http://your-evcc-host --trmnl-url http://your-trmnl-host:2300 --trmnl-mac AA:BB:CC:DD:EE:FF --trmnl-api-key your-trmnl-api-key-here --interactive",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "false",
+        "timer": "30",
+        "oldrc": false,
+        "name": "Get Statistics",
+        "x": 360,
+        "y": 280,
+        "wires": [
+            [
+                "stats_output"
+            ],
+            [
+                "stats_error"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "stats_output",
+        "type": "debug",
+        "z": "evcc_trmnl_tab",
+        "name": "Statistics",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 610,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "stats_error",
+        "type": "debug",
+        "z": "evcc_trmnl_tab",
+        "name": "Stats Error",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 620,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "error_recovery",
+        "type": "inject",
+        "z": "evcc_trmnl_tab",
+        "name": "Emergency Reset",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "0.1",
+        "topic": "emergency_reset",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 360,
+        "wires": [
+            [
+                "send_test_data"
+            ]
+        ]
+    },
+    {
+        "id": "send_test_data",
+        "type": "exec",
+        "z": "evcc_trmnl_tab",
+        "command": "cd /path/to/evcc-trmnl-linker && python3 evcc-api-client.py --evcc-url http://your-evcc-host --trmnl-url http://your-trmnl-host:2300 --trmnl-mac AA:BB:CC:DD:EE:FF --trmnl-api-key your-trmnl-api-key-here --test-only --verbose",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "false",
+        "timer": "45",
+        "oldrc": false,
+        "name": "Send Test Data",
+        "x": 370,
+        "y": 360,
+        "wires": [
+            [
+                "emergency_success"
+            ],
+            [
+                "emergency_error"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "emergency_success",
+        "type": "debug",
+        "z": "evcc_trmnl_tab",
+        "name": "Emergency Success",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 640,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "emergency_error",
+        "type": "debug",
+        "z": "evcc_trmnl_tab",
+        "name": "Emergency Error",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 630,
+        "y": 380,
+        "wires": []
+    }
+]
