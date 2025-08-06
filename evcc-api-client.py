@@ -564,6 +564,18 @@ class EVCCAPIClient:
                 headers['Content-Type'] = 'text/html'
                 data = content_data
             
+            # Log detailed request information
+            logger.debug(f"=== TRMNL API REQUEST DEBUG ===")
+            logger.debug(f"Method: {method.upper()}")
+            logger.debug(f"URL: {url}")
+            logger.debug(f"Headers: {json.dumps(dict(headers), indent=2)}")
+            logger.debug(f"Data length: {len(data) if data else 0} bytes")
+            if format_type == 'json':
+                logger.debug(f"JSON payload keys: {list(content_data.keys())}")
+                if 'image' in content_data:
+                    logger.debug(f"Image content length: {len(content_data['image']['content'])} chars")
+                    logger.debug(f"Image file name: {content_data['image']['file_name']}")
+            
             # Choose request method
             if method.upper() == 'GET':
                 # For GET requests, no data payload
@@ -582,6 +594,13 @@ class EVCCAPIClient:
                     timeout=30,
                     verify=False  # TRMNL BYOS uses self-signed certificates
                 )
+            
+            # Log detailed response information
+            logger.debug(f"=== TRMNL API RESPONSE DEBUG ===")
+            logger.debug(f"Status Code: {response.status_code}")
+            logger.debug(f"Response Headers: {json.dumps(dict(response.headers), indent=2)}")
+            logger.debug(f"Response Body: {response.text[:500]}{'...' if len(response.text) > 500 else ''}")
+            logger.debug(f"Response Time: {response.elapsed.total_seconds():.3f}s")
             
             if response.status_code == 200:
                 logger.info(f"Successfully sent data to TRMNL via {method} {endpoint}")

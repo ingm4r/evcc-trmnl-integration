@@ -14,31 +14,31 @@
         "props": [
             {
                 "p": "evcc_url",
-                "v": "http://your-evcc-host",
+                "v": "http://evcc.kaiser.host",
                 "vt": "str"
             },
             {
                 "p": "trmnl_url",
-                "v": "http://your-trmnl-host:2300",
+                "v": "http://terminus.kaiser.host:2300",
                 "vt": "str"
             },
             {
                 "p": "trmnl_mac",
-                "v": "AA:BB:CC:DD:EE:FF",
+                "v": "28:37:2F:B6:32:0C",
                 "vt": "str"
             },
             {
                 "p": "trmnl_api_key",
-                "v": "your-trmnl-api-key-here",
+                "v": "bZjCPEupusvMRnhz1JT9ig",
                 "vt": "str"
             }
         ],
         "repeat": "",
         "crontab": "",
-        "once": false,
+        "once": true,
         "onceDelay": 0.1,
-        "topic": "config",
-        "x": 100,
+        "topic": "",
+        "x": 110,
         "y": 60,
         "wires": [
             [
@@ -156,7 +156,7 @@
         ],
         "repeat": "",
         "crontab": "",
-        "once": false,
+        "once": true,
         "onceDelay": "0.1",
         "topic": "manual_update",
         "payload": "",
@@ -218,9 +218,6 @@
         "wires": [
             [
                 "parse_evcc_data"
-            ],
-            [
-                "http_error"
             ]
         ]
     },
@@ -300,7 +297,6 @@
         "y": 160,
         "wires": [
             [
-                "debug_html",
                 "create_trmnl_payload"
             ]
         ]
@@ -312,13 +308,13 @@
         "name": "Final HTML Output",
         "active": true,
         "tosidebar": true,
-        "console": false,
+        "console": true,
         "tostatus": false,
         "complete": "html",
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 1000,
+        "x": 1010,
         "y": 120,
         "wires": []
     },
@@ -327,7 +323,7 @@
         "type": "function",
         "z": "evcc_trmnl_native_tab",
         "name": "Create TRMNL Payload",
-        "func": "// Check TRMNL configuration\nconst trmnlUrl = global.get('trmnl_url');\nconst trmnlApiKey = global.get('trmnl_api_key');\n\nif (!trmnlUrl || trmnlUrl === 'http://your-trmnl-host:2300') {\n    node.error('TRMNL URL not configured. Click Configuration inject node first.');\n    return null;\n}\n\nif (!trmnlApiKey || trmnlApiKey === 'your-trmnl-api-key-here') {\n    node.error('TRMNL API key not configured. Click Configuration inject node first.');\n    return null;\n}\n\n// Create the TRMNL API payload\nconst trmnlPayload = {\n    image: {\n        content: msg.html,\n        label: 'EVCC',\n        model_id: '2',\n        name: 'EVCC Status',\n        file_name: 'evcc-status.png'\n    }\n};\n\nmsg.payload = trmnlPayload;\n\n// Set up headers for TRMNL API\nmsg.headers = {\n    'Content-Type': 'application/json',\n    'Access-Token': trmnlApiKey,\n    'User-Agent': 'EVCC-TRMNL-NodeRED/1.0'\n};\n\n// Set URL for TRMNL API\nmsg.url = trmnlUrl + '/api/screens/6';\n\nnode.log('Sending to TRMNL: ' + msg.url);\nreturn msg;",
+        "func": "// Check TRMNL configuration\nconst trmnlUrl = global.get('trmnl_url');\nconst trmnlApiKey = global.get('trmnl_api_key');\n\nif (!trmnlUrl || trmnlUrl === 'http://your-trmnl-host:2300') {\n    node.error('TRMNL URL not configured. Click Configuration inject node first.');\n    return null;\n}\n\nif (!trmnlApiKey || trmnlApiKey === 'your-trmnl-api-key-here') {\n    node.error('TRMNL API key not configured. Click Configuration inject node first.');\n    return null;\n}\n\n// Create the TRMNL API payload\nconst trmnlPayload = {\n    image: {\n       content: msg.html,\n        label: 'EVCC',\n        model_id: '2',\n        name: 'EVCC Status',\n        file_name: 'evcc-status.png'\n    }\n};\n\nmsg.payload = trmnlPayload;\n\n// Set up headers for TRMNL API\nmsg.headers = {\n    'Content-Type': 'application/json',\n    'Access-Token': trmnlApiKey,\n    'User-Agent': 'EVCC-TRMNL-NodeRED/1.0'\n};\n\n// Set URL for TRMNL API\nmsg.url = trmnlUrl + '/api/screens';\n\nnode.log('Sending to TRMNL: ' + msg.url);\nmsg.method = \"PATCH\";\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
@@ -354,29 +350,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1220,
-        "y": 160,
-        "wires": [
-            [
-                "debug_http_request"
-            ]
-        ]
-    },
-    {
-        "id": "debug_http_request",
-        "type": "debug",
-        "z": "evcc_trmnl_native_tab",
-        "name": "HTTP Request Debug",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "{\n  \"method\": \"PATCH\",\n  \"url\": url,\n  \"headers\": headers,\n  \"payload\": payload\n}",
-        "targetType": "jsonata",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 1320,
-        "y": 120,
+        "x": 1230,
+        "y": 360,
         "wires": [
             [
                 "send_to_trmnl"
@@ -388,7 +363,7 @@
         "type": "http request",
         "z": "evcc_trmnl_native_tab",
         "name": "Send to TRMNL",
-        "method": "PATCH",
+        "method": "POST",
         "ret": "txt",
         "paytoqs": "ignore",
         "url": "",
@@ -404,9 +379,6 @@
         "wires": [
             [
                 "trmnl_success"
-            ],
-            [
-                "trmnl_error"
             ]
         ]
     },
@@ -419,8 +391,8 @@
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
+        "complete": "true",
+        "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
         "x": 1630,
